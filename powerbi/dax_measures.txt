@@ -1,0 +1,44 @@
+// ── DAX Measures for Cyberthreat Dashboard ──
+// Paste these into Power BI Desktop > Modeling > New Measure
+
+// KPI: Average Ransomware Rate
+Avg Ransomware = AVERAGE(fact_threats[Ransomware])
+
+// KPI: Average Spam Rate
+Avg Spam = AVERAGE(fact_threats[Spam])
+
+// KPI: Average Network Attack Rate
+Avg Network Attack = AVERAGE(fact_threats[Network Attack])
+
+// KPI: Average Exploit Rate
+Avg Exploit = AVERAGE(fact_threats[Exploit])
+
+// KPI: Total Threat Score per Country (used in map)
+Total Threat Score = 
+    SUMX(
+        fact_threats,
+        fact_threats[Spam] + fact_threats[Ransomware] + fact_threats[Local Infection] +
+        fact_threats[Exploit] + fact_threats[Malicious Mail] + fact_threats[Network Attack] +
+        fact_threats[On Demand Scan] + fact_threats[Web Threat]
+    )
+
+// Trend: Month-over-Month change in Ransomware
+Ransomware MoM % = 
+VAR CurrentMonth = CALCULATE(AVERAGE(fact_threats[Ransomware]))
+VAR PrevMonth = CALCULATE(
+    AVERAGE(fact_threats[Ransomware]),
+    DATEADD(fact_threats[AttackDate], -1, MONTH)
+)
+RETURN DIVIDE(CurrentMonth - PrevMonth, PrevMonth, 0)
+
+// Top threat type label (for dynamic title)
+Highest Threat Type = 
+MAXX(
+    { 
+        ("Spam", [Avg Spam]),
+        ("Ransomware", [Avg Ransomware]),
+        ("Network Attack", [Avg Network Attack]),
+        ("Exploit", [Avg Exploit])
+    },
+    [Value2]
+)[Value1]
